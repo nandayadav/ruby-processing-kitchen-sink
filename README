@@ -1,2 +1,25 @@
 Various small projects using different api data and ruby-processing for visuals
 
+#getting setup
+1. I haven't got it working in a non-jruby environment, so I prefer to use just rvm and install jruby
+   rvm install jruby
+2. rvm jruby (to switch to jruby)
+3. gem install ruby-processing
+4. gem install twitter (twitter api)
+
+
+#twitter-visuals
+  -- viewer.rb [visualize image profiles for latest tweet for a certain term)
+  To run: rp5 run viewer.rb 
+  Currently its pretty generic, just shows image profiles for latest tweets for certain term
+  Mouse clicks: 
+    - When mouse is pressed, api is hit continuously and new image profiles are rendered randomly around the click area
+    - When mouse is released, the continuous rendering is stopped. 
+    - When mouse is pressed and moved around, images are rendered randomnly around that path.
+
+#TODO: (lots)
+  - embed link url to actual tweet
+  - display the tweet
+  - better randomization of images
+  
+
