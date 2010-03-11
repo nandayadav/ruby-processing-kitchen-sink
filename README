@@ -10,7 +10,7 @@ Various small projects using different api data and ruby-processing for visuals
 
 #twitter-visuals
   -- viewer.rb [visualize image profiles for latest tweet for a certain term)
-  To run: rp5 run viewer.rb 
+  To run: rp5 run viewer.rb --jruby
   Currently its pretty generic, just shows image profiles for latest tweets for certain term
   Mouse clicks: 
     - When mouse is pressed, api is hit continuously and new image profiles are rendered randomly around the click area
