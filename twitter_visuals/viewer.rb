@@ -8,8 +8,8 @@ class Viewer < Processing::App
     @results = []
     @rendered_images = []
     control_panel do |c|
-      c.button :generate_stuff
-      c.menu(:options, ['none', 'blur', 'erode', 'gray','invert','opaque','dilate'], 'none') {|m| modify_image(m) }
+      c.button :re_draw
+      c.menu(:filter_options, ['none', 'blur', 'erode', 'gray','invert','opaque','dilate'], 'none') {|m| modify_image(m) }
     end
     no_loop
     @link = nil
@@ -30,17 +30,15 @@ class Viewer < Processing::App
   end
     
   
-  def generate_stuff
+  def re_draw
     redraw
   end
   
   def draw    
-    #rect(10,10,20,20)
     fetch_data
     x, y = mouse_x, mouse_y
     filter_old_images
     @results.each_with_index do |result, index|
-      #sleep 1
       image_url = result.profile_image_url
       b = loadImage(image_url)
       if index.even?
@@ -54,17 +52,7 @@ class Viewer < Processing::App
       puts "Link: #{@link}"
       
       @rendered_images << {:image => b, :x => x, :y => y, :counter => 0}
-      # push_matrix
-      #       case @mode
-      #       when 'BLUR'
-      #         b.filter(BLUR, 2)
-      #       when 'ERODE'
-      #         b.filter(ERODE)
-      #       when 'DILATE'
-      #         b.filter(DILATE)
-      #       end
       image(b, x, y)
-      #pop_matrix
     end
     
   end
@@ -75,9 +63,7 @@ class Viewer < Processing::App
     x,y = image[:x], image[:y]
     dimension = (img.width*img.height)
     img.load_pixels
-    (0..dimension-1).each do |i|
-      img.pixels[i] = color(@bg_x, @bg_y, @bg_z)
-    end
+    (0..dimension-1).each{ |i| img.pixels[i] = color(@bg_x, @bg_y, @bg_z) }
     img.update_pixels
     image(img,x,y)
   end
@@ -94,7 +80,6 @@ class Viewer < Processing::App
       else
         img.filter(BLUR,4)
       end
-      #img.resize(img.width/2, img.height/2)
       image(img, i[:x], i[:y])
       i[:counter] += 1
       fade_image(i) if i[:counter] > FADE_THRESHOLD
