@@ -35,6 +35,7 @@ class Viewer < Processing::App
     #rect(10,10,20,20)
     fetch_data
     x, y = mouse_x, mouse_y
+    blur_old_images
     @results.each_with_index do |result, index|
       #sleep 1
       image_url = result.profile_image_url
@@ -49,28 +50,34 @@ class Viewer < Processing::App
       @link = result.source
       puts "Link: #{@link}"
       
-      @rendered_images << b
-      push_matrix
+      @rendered_images << {:image => b, :x => x, :y => y}
+      # push_matrix
+      #       case @mode
+      #       when 'BLUR'
+      #         b.filter(BLUR, 2)
+      #       when 'ERODE'
+      #         b.filter(ERODE)
+      #       when 'DILATE'
+      #         b.filter(DILATE)
+      #       end
       image(b, x, y)
-      case @mode
-      when 'BLUR'
-        filter(BLUR, 2)
-      when 'ERODE'
-        filter(ERODE)
-      when 'DILATE'
-        filter(DILATE)
-      end
-      pop_matrix
+      #pop_matrix
     end
-    #blur_old_images
+    
   end
   
   def blur_old_images
-    push_matrix
     @rendered_images.each do |img| 
-      filter(BLUR,2)
+      case @mode
+      when 'ERODE'
+        img[:image].filter(ERODE)
+      when 'DILATE'
+        img[:image].filter(DILATE)
+      else
+        img[:image].filter(BLUR,2)
+      end
+      image(img[:image], img[:x], img[:y])
     end
-    pop_matrix
   end
   
   def fetch_data
