@@ -17,9 +17,21 @@ Various small projects using different api data and ruby-processing for visuals
     - When mouse is released, the continuous rendering is stopped. 
     - When mouse is pressed and moved around, images are rendered randomnly around that path.
 
+  -- network_viewer [visualize image profiles for friends/followers for a particular user]
+  To run: rp5 run network_viewer.rb --jruby
+
+
+
 #TODO: (lots)
+  viewer
   - embed link url to actual tweet
   - display the tweet
   - better randomization of images
+  - use OAuth instead of HTTP auth
+
+  network_viewer
+  - explore linking profile images
+  - add more weight(size) to profiles with highest followers?? rank??
+  - explore adding links to profile images that redoes visualization for that profile
   
 
