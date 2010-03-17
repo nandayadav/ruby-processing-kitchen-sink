@@ -1,7 +1,7 @@
 #Social Graph visualization(followers/friends) for specific twitter profile
 require 'lib/twitter_api'
-
-class Viewer < Processing::App
+USER = 'nandayadav'
+class NetworkViewer < Processing::App
   def setup
     @client = TwitterClient::DataFetcher.new
     no_loop
@@ -12,8 +12,8 @@ class Viewer < Processing::App
   
   
   def draw
-    fetch_data#('friends')
-    @results.each_with_index do |result, index|
+    fetch_data('friends')
+    @results.each do |result|
       image_url = result.profile_image_url
       b = loadImage(image_url)
       x, y = rand(@width - 100), rand(@height - 100)
@@ -23,7 +23,7 @@ class Viewer < Processing::App
   
   def fetch_data(method = 'followers')
     @results = [] #reset
-    @results = eval("@client.#{method}('ConanOBrien')")
+    @results = eval("@client.#{method}('#{USER}')")
   end
 end
-Viewer.new :title => "Social Graph"
+NetworkViewer.new :title => "Twitter Social Graph - #{USER}"
