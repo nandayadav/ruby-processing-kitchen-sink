@@ -1,5 +1,5 @@
-require 'net/http'
 require 'rubygems'
+require 'resourceful'
 require 'uri'
 require 'json'
 
@@ -24,8 +24,8 @@ module SocialGraph
   #Normal Get result loaded as Json hash
   private
   def get_json(url)
-    response = Net::HTTP.get(URI.parse(url))
-    JSON::load(response)
+    response = Resourceful.get(URI.parse(url))
+    JSON::load(response.body)
   end
     
   def build_query(hash)
