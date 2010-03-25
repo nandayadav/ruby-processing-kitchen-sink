@@ -1,23 +1,63 @@
 #Social Graph visualization(followers/friends) for specific twitter profile
 require 'lib/twitter_api'
-USER = 'nandayadav'
+USER = 'jeresig'
 PROFILE_SIZE = 48 #Default size of profile image as returned by API
 
 class NetworkViewer < Processing::App
   load_library :control_panel
+  load_library :opengl
+  include_package 'processing.opengl'
   def setup
     @client = TwitterClient::DataFetcher.new
     control_panel do |c|
       c.button :friends
       c.button :followers
+      c.button :rotate_canvas
     end
     no_loop
     @results = []
-    size 800, 800
+    size 800, 800, OPENGL
     @bg_x, @bg_y, @bg_z = 100, 100, 100
+    @initial = true
+  end
+  
+  def rotate_canvas
+    @initial = false
+    redraw
   end
   
   def draw
+    if @initial
+    friend_ids if @results.empty?
+    background(@bg_x, @bg_y, @bg_z) #To wipe out existing graph 
+    x1, y1 = nil, nil
+    x_center = width/2
+    y_center = height/2
+    no_stroke
+    lights
+    min_x = 100
+    min_y = 100
+    max_x = 700
+    max_y = 700
+    camera(300.0, 300.0, 1.0, 300.0, 300.0, 0.0, 0.0, 0.0, 0.0)
+    @results.size.times do
+      x = min_x + rand(max_x - min_x)
+      y = min_y + rand(max_y - min_y)
+      z = rand(100)
+      push_matrix 
+      translate(x, y, z)
+      #fill(rand(255),rand(255),rand(255))
+      sphere(rand(30))
+      pop_matrix
+    end
+    else
+      #push_matrix
+      rotate(45)
+      #pop_matrix
+    end
+  end
+  
+  def old_draw
     friends if @results.empty?
     background(@bg_x, @bg_y, @bg_z) #To wipe out existing graph 
     x1, y1 = nil, nil
@@ -50,6 +90,11 @@ class NetworkViewer < Processing::App
   #Control Panel methods
   def friends
     fetch_data('friends')
+    redraw
+  end
+  
+  def friend_ids
+    fetch_data('friend_ids')
     redraw
   end
   
