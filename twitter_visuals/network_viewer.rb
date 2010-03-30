@@ -28,6 +28,21 @@ class NetworkViewer < Processing::App
     redraw
   end
   
+  def follower_range(results)
+    min, max = results.first.followers_count, results.first.followers_count
+    results.each do |r| 
+      min = r.followers_count if r.followers_count < min
+      max = r.followers_count if r.followers_count > max
+    end
+    min = 1 if min == 0
+    return max, min
+  end
+  
+  def mean_count(results)
+    sum = results.map(&:followers_count).inject(0){|sum, val| sum + val}
+    sum.to_f / results.size.to_f
+  end
+  
   def draw
     if @initial
     followers if @results.empty?
@@ -42,6 +57,10 @@ class NetworkViewer < Processing::App
     max_x = 700
     max_y = 700
     camera#(300.0, 300.0, 1.0, 300.0, 300.0, 0.0, 0.0, 0.0, 0.0)
+    max, min = follower_range(@results)
+    #puts "Max: #{max}, min: #{min}"
+    scaling_factor = 80.0 / mean_count(@results) #for now
+    puts "Scalinf Factor: #{scaling_factor}"
     @results.each do |r|
       x = min_x + rand(max_x - min_x)
       y = min_y + rand(max_y - min_y)
@@ -53,7 +72,9 @@ class NetworkViewer < Processing::App
       name = r.screen_name
       m = color.match /(..)(..)(..)/
       fill(m[1].hex, m[2].hex, m[3].hex)
-      sphere(rand(50))
+      size = scaling_factor * r.followers_count
+      size = size > 80 ? 80 : size
+      sphere(size) #if r.followers_count 
       #text(name, x, y, z)
       pop_matrix
     end
