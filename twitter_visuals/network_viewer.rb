@@ -1,6 +1,6 @@
 #Social Graph visualization(followers/friends) for specific twitter profile
 require 'lib/twitter_api'
-USER = 'jeresig'
+USER = 'billmaher'
 PROFILE_SIZE = 48 #Default size of profile image as returned by API
 
 class NetworkViewer < Processing::App
@@ -19,6 +19,8 @@ class NetworkViewer < Processing::App
     size 800, 800, OPENGL
     @bg_x, @bg_y, @bg_z = 100, 100, 100
     @initial = true
+    @x, @y, @z = 10.0, 10.0, 1.0
+    text_font create_font("Georgia", 12, true)
   end
   
   def rotate_canvas
@@ -28,7 +30,7 @@ class NetworkViewer < Processing::App
   
   def draw
     if @initial
-    friend_ids if @results.empty?
+    followers if @results.empty?
     background(@bg_x, @bg_y, @bg_z) #To wipe out existing graph 
     x1, y1 = nil, nil
     x_center = width/2
@@ -39,22 +41,34 @@ class NetworkViewer < Processing::App
     min_y = 100
     max_x = 700
     max_y = 700
-    camera(300.0, 300.0, 1.0, 300.0, 300.0, 0.0, 0.0, 0.0, 0.0)
-    @results.size.times do
+    camera#(300.0, 300.0, 1.0, 300.0, 300.0, 0.0, 0.0, 0.0, 0.0)
+    @results.each do |r|
       x = min_x + rand(max_x - min_x)
       y = min_y + rand(max_y - min_y)
       z = rand(100)
+      #z = 0
       push_matrix 
       translate(x, y, z)
-      #fill(rand(255),rand(255),rand(255))
-      sphere(rand(30))
+      color = r.profile_background_color
+      name = r.screen_name
+      m = color.match /(..)(..)(..)/
+      fill(m[1].hex, m[2].hex, m[3].hex)
+      sphere(rand(50))
+      #text(name, x, y, z)
       pop_matrix
     end
-    else
+    #@initial = false
+  else
+    @x += 1.0
+    @y += 1.0
+    @z += 0.1
+    #camera(@x, @y, @z, @x, @y, 0.0, 0.0, 0.0, 0.0)
+    sphere(rand(100))
+    
+  end
       #push_matrix
-      rotate(45)
+      #rotate(1)
       #pop_matrix
-    end
   end
   
   def old_draw
