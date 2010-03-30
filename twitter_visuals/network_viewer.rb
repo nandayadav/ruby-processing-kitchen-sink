@@ -1,7 +1,41 @@
 #Social Graph visualization(followers/friends) for specific twitter profile
 require 'lib/twitter_api'
-USER = 'billmaher'
+USER = 'jeresig'
 PROFILE_SIZE = 48 #Default size of profile image as returned by API
+
+class TwitterNode
+
+  def initialize(x, y, z, size, r, g, b)
+    @x = x
+    @y = y
+    @z = z
+    @size = size
+    @r = r
+    @g = g
+    @b = b
+    @theta = 0
+    @orbit_speed = rand * 0.02 + 0.01
+  end
+
+  def update
+    # Increment the angle to rotate
+    @theta += @orbit_speed
+  end
+
+  def display
+    # Before rotation and translation, the state of the matrix is saved with push_matrix.
+    $app.push_matrix 
+    # Rotate orbit
+    $app.rotate(@theta)
+    # translate out @distance
+    $app.translate(@x, @y, @z)
+    $app.fill(@r, @g, @b)
+    $app.sphere(@size)
+    # Once the planet is drawn, the matrix is restored with pop_matrix so that the next planet is not affected.
+    $app.pop_matrix 
+  end
+
+end
 
 class NetworkViewer < Processing::App
   load_library :control_panel
@@ -14,7 +48,7 @@ class NetworkViewer < Processing::App
       c.button :followers
       c.button :rotate_canvas
     end
-    no_loop
+    #no_loop
     @results = []
     size 800, 800, OPENGL
     @bg_x, @bg_y, @bg_z = 100, 100, 100
@@ -43,15 +77,9 @@ class NetworkViewer < Processing::App
     sum.to_f / results.size.to_f
   end
   
-  def draw
-    if @initial
+  def build_nodes
     followers if @results.empty?
-    background(@bg_x, @bg_y, @bg_z) #To wipe out existing graph 
-    x1, y1 = nil, nil
-    x_center = width/2
-    y_center = height/2
-    no_stroke
-    lights
+    @twitter_nodes = []
     min_x = 100
     min_y = 100
     max_x = 700
@@ -60,62 +88,58 @@ class NetworkViewer < Processing::App
     max, min = follower_range(@results)
     #puts "Max: #{max}, min: #{min}"
     scaling_factor = 80.0 / mean_count(@results) #for now
-    puts "Scalinf Factor: #{scaling_factor}"
-    @results.each do |r|
-      x = min_x + rand(max_x - min_x)
-      y = min_y + rand(max_y - min_y)
-      z = rand(100)
-      #z = 0
-      push_matrix 
-      translate(x, y, z)
+    @results.each do |r| 
+      #x = min_x + rand(max_x - min_x)
+      x = r.followers_count % 700
+      #y = min_y + rand(max_y - min_y)
+      y = r.followers_count % 700
+      z = 0
       color = r.profile_background_color
-      name = r.screen_name
       m = color.match /(..)(..)(..)/
-      fill(m[1].hex, m[2].hex, m[3].hex)
       size = scaling_factor * r.followers_count
       size = size > 80 ? 80 : size
-      sphere(size) #if r.followers_count 
-      #text(name, x, y, z)
-      pop_matrix
+      @twitter_nodes << TwitterNode.new(x, y, z, size, m[0].hex, m[1].hex, m[2].hex)
     end
-    #@initial = false
-  else
-    @x += 1.0
-    @y += 1.0
-    @z += 0.1
-    #camera(@x, @y, @z, @x, @y, 0.0, 0.0, 0.0, 0.0)
-    sphere(rand(100))
-    
-  end
-      #push_matrix
-      #rotate(1)
-      #pop_matrix
   end
   
-  def old_draw
-    friends if @results.empty?
+  def draw
+    build_nodes
     background(@bg_x, @bg_y, @bg_z) #To wipe out existing graph 
     x1, y1 = nil, nil
     x_center = width/2
     y_center = height/2
-    radius = 300
-    segment_angle = 360.0/@results.size.to_f
-    puts "Segment angle: #{segment_angle}"
-    puts "Nodes: #{@results.size}"
-    image_size = segment_angle*4.0 > PROFILE_SIZE ? PROFILE_SIZE : segment_angle*4.0
-    @results.each_with_index do |result, index|
-      index += 1
-      theta = radians(index*segment_angle)
-      x = (cos(theta) * radius) + x_center
-      y = (sin(theta) * radius) + y_center
-      image_url = result.profile_image_url
-      b = load_image(image_url)
-      #Smaller images, also to nullify sporadic 'big' profile images returned by twitter API
-      b.resize(image_size, image_size)
-      image(b, x, y)
-      line(x_center, y_center, x, y)
+    no_stroke
+    lights
+    @twitter_nodes.each do |t|
+      t.update
+      t.display
     end
   end
+  
+  # def old_draw
+  #   friends if @results.empty?
+  #   background(@bg_x, @bg_y, @bg_z) #To wipe out existing graph 
+  #   x1, y1 = nil, nil
+  #   x_center = width/2
+  #   y_center = height/2
+  #   radius = 300
+  #   segment_angle = 360.0/@results.size.to_f
+  #   puts "Segment angle: #{segment_angle}"
+  #   puts "Nodes: #{@results.size}"
+  #   image_size = segment_angle*4.0 > PROFILE_SIZE ? PROFILE_SIZE : segment_angle*4.0
+  #   @results.each_with_index do |result, index|
+  #     index += 1
+  #     theta = radians(index*segment_angle)
+  #     x = (cos(theta) * radius) + x_center
+  #     y = (sin(theta) * radius) + y_center
+  #     image_url = result.profile_image_url
+  #     b = load_image(image_url)
+  #     #Smaller images, also to nullify sporadic 'big' profile images returned by twitter API
+  #     b.resize(image_size, image_size)
+  #     image(b, x, y)
+  #     line(x_center, y_center, x, y)
+  #   end
+  # end
   
   def fetch_data(method = 'followers')
     @results = [] #reset
@@ -139,4 +163,5 @@ class NetworkViewer < Processing::App
   end
   
 end
+
 NetworkViewer.new :title => "Twitter Social Graph - #{USER}"
