@@ -1,6 +1,6 @@
 #Social Graph visualization(followers/friends) for specific twitter profile
 require 'lib/twitter_api'
-USER = 'jeresig'
+USER = 'shovan'
 PROFILE_SIZE = 48 #Default size of profile image as returned by API
 
 class TwitterNode
@@ -18,20 +18,15 @@ class TwitterNode
   end
 
   def update
-    # Increment the angle to rotate
     @theta += @orbit_speed
   end
 
   def display
-    # Before rotation and translation, the state of the matrix is saved with push_matrix.
     $app.push_matrix 
-    # Rotate orbit
     $app.rotate(@theta)
-    # translate out @distance
     $app.translate(@x, @y, @z)
     $app.fill(@r, @g, @b)
     $app.sphere(@size)
-    # Once the planet is drawn, the matrix is restored with pop_matrix so that the next planet is not affected.
     $app.pop_matrix 
   end
 
@@ -50,10 +45,11 @@ class NetworkViewer < Processing::App
     end
     #no_loop
     @results = []
-    size 800, 800, OPENGL
+    @twitter_nodes = []
+    size 900, 900, OPENGL
     @bg_x, @bg_y, @bg_z = 100, 100, 100
     @initial = true
-    @x, @y, @z = 10.0, 10.0, 1.0
+    @x, @y, @z = nil
     text_font create_font("Georgia", 12, true)
   end
   
@@ -79,23 +75,22 @@ class NetworkViewer < Processing::App
   
   def build_nodes
     followers if @results.empty?
-    @twitter_nodes = []
+    
     min_x = 100
     min_y = 100
-    max_x = 700
-    max_y = 700
+    max_x = 300
+    max_y = 300
     camera#(300.0, 300.0, 1.0, 300.0, 300.0, 0.0, 0.0, 0.0, 0.0)
     max, min = follower_range(@results)
     #puts "Max: #{max}, min: #{min}"
     scaling_factor = 80.0 / mean_count(@results) #for now
     @results.each do |r| 
-      #x = min_x + rand(max_x - min_x)
-      x = r.followers_count % 700
-      #y = min_y + rand(max_y - min_y)
-      y = r.followers_count % 700
-      z = 0
-      color = r.profile_background_color
-      m = color.match /(..)(..)(..)/
+      x = min_x + rand(max_x - min_x)
+      #x = r.followers_count % 700
+      y = min_y + rand(max_y - min_y)
+      #y = r.followers_count % 700
+      z = rand(100)
+      m = r.profile_background_color.match /(..)(..)(..)/
       size = scaling_factor * r.followers_count
       size = size > 80 ? 80 : size
       @twitter_nodes << TwitterNode.new(x, y, z, size, m[0].hex, m[1].hex, m[2].hex)
@@ -103,17 +98,23 @@ class NetworkViewer < Processing::App
   end
   
   def draw
-    build_nodes
+    build_nodes if @twitter_nodes.empty?
     background(@bg_x, @bg_y, @bg_z) #To wipe out existing graph 
     x1, y1 = nil, nil
     x_center = width/2
     y_center = height/2
+    push_matrix
+    #light_specular(255, 255, 255)
+    directional_light(255, 255, 204, -1, 0, -1)
+    #emissive(1, 1, 1)
+    translate(x_center, y_center, 0)
+
     no_stroke
-    lights
     @twitter_nodes.each do |t|
       t.update
       t.display
     end
+    pop_matrix
   end
   
   # def old_draw
