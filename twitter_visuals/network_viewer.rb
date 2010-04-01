@@ -1,11 +1,11 @@
 #Social Graph visualization(followers/friends) for specific twitter profile
 require 'lib/twitter_api'
-USER = 'shovan'
+USER = 'jeresig'
 PROFILE_SIZE = 48 #Default size of profile image as returned by API
 
 class TwitterNode
 
-  def initialize(x, y, z, size, r, g, b)
+  def initialize(x, y, z, size, r, g, b, name)
     @x = x
     @y = y
     @z = z
@@ -15,6 +15,7 @@ class TwitterNode
     @b = b
     @theta = 0
     @orbit_speed = rand * 0.02 + 0.01
+    @name = name
   end
 
   def update
@@ -26,7 +27,9 @@ class TwitterNode
     $app.rotate(@theta)
     $app.translate(@x, @y, @z)
     $app.fill(@r, @g, @b)
-    $app.sphere(@size)
+    #$app.sphere(@size)
+    $app.text_size(@size/4)
+    $app.text(@name, @x, @y, @z)
     $app.pop_matrix 
   end
 
@@ -50,7 +53,9 @@ class NetworkViewer < Processing::App
     @bg_x, @bg_y, @bg_z = 100, 100, 100
     @initial = true
     @x, @y, @z = nil
-    text_font create_font("Georgia", 12, true)
+    text_font create_font("Georgia", 24, true)
+    text_mode(MODEL)
+    text_align(CENTER)
   end
   
   def rotate_canvas
@@ -78,8 +83,8 @@ class NetworkViewer < Processing::App
     
     min_x = 100
     min_y = 100
-    max_x = 300
-    max_y = 300
+    max_x = 200
+    max_y = 200
     camera#(300.0, 300.0, 1.0, 300.0, 300.0, 0.0, 0.0, 0.0, 0.0)
     max, min = follower_range(@results)
     #puts "Max: #{max}, min: #{min}"
@@ -93,7 +98,7 @@ class NetworkViewer < Processing::App
       m = r.profile_background_color.match /(..)(..)(..)/
       size = scaling_factor * r.followers_count
       size = size > 80 ? 80 : size
-      @twitter_nodes << TwitterNode.new(x, y, z, size, m[0].hex, m[1].hex, m[2].hex)
+      @twitter_nodes << TwitterNode.new(x, y, z, size, m[0].hex, m[1].hex, m[2].hex, r.screen_name)
     end
   end
   
